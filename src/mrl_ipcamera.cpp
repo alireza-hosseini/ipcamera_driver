@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Alireza Hosseini.
+ * Copyright (c) 2018, Alireza Hosseini.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,19 @@
 /* Author: Alireza Hosseini */
 
 
-#include "mrl_ipcamera/mrl_ipcamera.hpp"
 #include <opencv2/video/video.hpp>
 #include <sensor_msgs/image_encodings.h>
+#include "mrl_ipcamera/mrl_ipcamera.hpp"
 
 MrlIpCamera::MrlIpCamera(ros::NodeHandle *nodeHandle):nh_(nodeHandle),
-    imagetransport_(*nodeHandle)
+    image_transport_(*nodeHandle)
 {
-    camera_pub_= imagetransport_.advertiseCamera("/camera/image",10);
+    camera_pub_= image_transport_.advertiseCamera("/camera/image",10);
     nh_->param<std::string>("video_url",video_url_,"rtsp://admin:A123456789@192.168.1.64/live.sdp?:network-cache=300");
-    ROS_INFO_STREAM("video_url  "<<video_url_);
-    nh_->param<std::string>("frame_id",frame_id_,"manipulator_cam_link");
-    refresh_serviceServer_ = nh_->advertiseService("refresh",&MrlIpCamera::refreshSrvCallback, this);
+    nh_->param<std::string>("frame_id",frame_id_,"cam_link");
+    refresh_service_server_ = nh_->advertiseService("refresh",&MrlIpCamera::refreshSrvCallback, this);
+    ROS_INFO_STREAM("Trying to connect to  "<<video_url_);
     cap_.open(video_url_);
-}
-
-MrlIpCamera::~MrlIpCamera()
-{
-
 }
 
 bool MrlIpCamera::publish()

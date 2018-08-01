@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Alireza Hosseini.
+ * Copyright (c) 2018, Alireza Hosseini.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,18 +42,17 @@
 class MrlIpCamera
 {
 public:
-    MrlIpCamera(ros::NodeHandle *nodeHandle);
-    ~MrlIpCamera();
+    explicit MrlIpCamera(ros::NodeHandle *nodeHandle);
     bool publish();
     bool refreshSrvCallback(std_srvs::Empty::Request &req,
                         std_srvs::Empty::Response &res);
 private:
     ros::NodeHandle *nh_;
-    image_transport::ImageTransport imagetransport_;
+    image_transport::ImageTransport image_transport_;
     image_transport::CameraPublisher camera_pub_;
     std::string video_url_;
     std::string frame_id_;
-    ros::ServiceServer refresh_serviceServer_;
+    ros::ServiceServer refresh_service_server_;
     cv::VideoCapture cap_;
 };
 
