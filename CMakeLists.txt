@@ -3,6 +3,7 @@ project(mrl_ipcamera)
 
 
 find_package(catkin REQUIRED COMPONENTS
+  camera_info_manager
   cv_bridge
   dynamic_reconfigure
   image_transport
@@ -14,6 +15,7 @@ find_package( OpenCV REQUIRED )
 include_directories(include ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 catkin_package(
  CATKIN_DEPENDS
+  camera_info_manager
   cv_bridge
   dynamic_reconfigure
   image_transport

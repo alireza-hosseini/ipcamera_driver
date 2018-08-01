@@ -38,22 +38,25 @@
 #include <ros/service_server.h>
 #include <std_srvs/Empty.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <camera_info_manager/camera_info_manager.h>
 
 class MrlIpCamera
 {
 public:
-  explicit MrlIpCamera(ros::NodeHandle *nodeHandle);
+  explicit MrlIpCamera();
   bool publish();
   bool refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
 private:
-  ros::NodeHandle *nh_;
+  ros::NodeHandle pnh_;
   image_transport::ImageTransport image_transport_;
   image_transport::CameraPublisher camera_pub_;
   std::string video_url_;
+  std::string camera_info_url_;
   std::string frame_id_;
   ros::ServiceServer refresh_service_server_;
   cv::VideoCapture cap_;
+  camera_info_manager::CameraInfoManager camera_info_manager_;
 };
 
 #endif

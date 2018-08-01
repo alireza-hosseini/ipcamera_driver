@@ -33,14 +33,37 @@
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/video/video.hpp>
 
-MrlIpCamera::MrlIpCamera(ros::NodeHandle *nodeHandle) : nh_(nodeHandle), image_transport_(*nodeHandle)
+MrlIpCamera::MrlIpCamera() :
+    pnh_("~"),
+    image_transport_(pnh_),
+    camera_info_manager_(pnh_)
 {
   camera_pub_ = image_transport_.advertiseCamera("/camera/image", 10);
 
-  nh_->param<std::string>("video_url", video_url_, "rtsp://admin:A123456789@192.168.1.64/live.sdp?:network-cache=300");
-  nh_->param<std::string>("frame_id", frame_id_, "cam_link");
+  pnh_.param<std::string>("video_url", video_url_, "rtsp://admin:A123456789@192.168.1.64/live.sdp?:network-cache=300");
+  pnh_.getParam("camera_info_url", camera_info_url_);
+  pnh_.param<std::string>("frame_id", frame_id_, "cam_link");
 
-  refresh_service_server_ = nh_->advertiseService("refresh", &MrlIpCamera::refreshSrvCallback, this);
+  refresh_service_server_ = pnh_.advertiseService("refresh", &MrlIpCamera::refreshSrvCallback, this);
+
+  camera_info_manager_.setCameraName("camera");
+
+  if(camera_info_manager_.validateURL(camera_info_url_))
+  {
+    if(camera_info_manager_.loadCameraInfo(camera_info_url_))
+    {
+        ROS_INFO_STREAM("Loaded camera calibration from "<<camera_info_url_);
+    }
+    else
+    {
+        ROS_WARN_STREAM("Could not load camera info, using an uncalibrated config.");
+    }
+  }
+  else
+  {
+      ROS_WARN_STREAM("Given camera info url: "<<camera_info_url_<<" is not valid, using an uncalibrated config.");
+  }
+
 
   ROS_INFO_STREAM("Trying to connect to  " << video_url_);
   cap_.open(video_url_);
@@ -67,6 +90,7 @@ bool MrlIpCamera::publish()
         out_msg.image = frame;
 
         sensor_msgs::CameraInfo camera_info;
+        camera_info = camera_info_manager_.getCameraInfo();
         camera_info.header.frame_id = frame_id_;
         camera_info.header.stamp = ros::Time::now();
 
@@ -102,8 +126,7 @@ bool MrlIpCamera::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Em
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "MrlIpCamera");
-  ros::NodeHandle nh("~");
-  MrlIpCamera ipCamera(&nh);
+  MrlIpCamera ipCamera;
   ipCamera.publish();
   return 0;
 }
