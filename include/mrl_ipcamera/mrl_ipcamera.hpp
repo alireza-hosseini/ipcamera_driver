@@ -32,13 +32,13 @@
 #ifndef MRL_IPCAMERA
 #define MRL_IPCAMERA
 
+#include <camera_info_manager/camera_info_manager.h>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/camera_publisher.h>
 #include <image_transport/image_transport.h>
 #include <ros/service_server.h>
 #include <std_srvs/Empty.h>
 #include <opencv2/highgui/highgui.hpp>
-#include <camera_info_manager/camera_info_manager.h>
 
 class MrlIpCamera
 {

@@ -33,10 +33,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/video/video.hpp>
 
-MrlIpCamera::MrlIpCamera() :
-    pnh_("~"),
-    image_transport_(pnh_),
-    camera_info_manager_(pnh_)
+MrlIpCamera::MrlIpCamera() : pnh_("~"), image_transport_(pnh_), camera_info_manager_(pnh_)
 {
   camera_pub_ = image_transport_.advertiseCamera("/camera/image", 10);
 
@@ -48,22 +45,21 @@ MrlIpCamera::MrlIpCamera() :
 
   camera_info_manager_.setCameraName("camera");
 
-  if(camera_info_manager_.validateURL(camera_info_url_))
+  if (camera_info_manager_.validateURL(camera_info_url_))
   {
-    if(camera_info_manager_.loadCameraInfo(camera_info_url_))
+    if (camera_info_manager_.loadCameraInfo(camera_info_url_))
     {
-        ROS_INFO_STREAM("Loaded camera calibration from "<<camera_info_url_);
+      ROS_INFO_STREAM("Loaded camera calibration from " << camera_info_url_);
     }
     else
     {
-        ROS_WARN_STREAM("Could not load camera info, using an uncalibrated config.");
+      ROS_WARN_STREAM("Could not load camera info, using an uncalibrated config.");
     }
   }
   else
   {
-      ROS_WARN_STREAM("Given camera info url: "<<camera_info_url_<<" is not valid, using an uncalibrated config.");
+    ROS_WARN_STREAM("Given camera info url: " << camera_info_url_ << " is not valid, using an uncalibrated config.");
   }
-
 
   ROS_INFO_STREAM("Trying to connect to  " << video_url_);
   cap_.open(video_url_);
@@ -125,7 +121,7 @@ bool MrlIpCamera::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Em
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "MrlIpCamera");
+  ros::init(argc, argv, "mrl_ip_camera");
   MrlIpCamera ipCamera;
   ipCamera.publish();
   return 0;
