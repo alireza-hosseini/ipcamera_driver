@@ -32,28 +32,28 @@
 #ifndef MRL_IPCAMERA
 #define MRL_IPCAMERA
 
-#include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
-#include <image_transport/image_transport.h>
 #include <image_transport/camera_publisher.h>
+#include <image_transport/image_transport.h>
 #include <ros/service_server.h>
 #include <std_srvs/Empty.h>
+#include <opencv2/highgui/highgui.hpp>
 
 class MrlIpCamera
 {
 public:
-    explicit MrlIpCamera(ros::NodeHandle *nodeHandle);
-    bool publish();
-    bool refreshSrvCallback(std_srvs::Empty::Request &req,
-                        std_srvs::Empty::Response &res);
+  explicit MrlIpCamera(ros::NodeHandle *nodeHandle);
+  bool publish();
+  bool refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+
 private:
-    ros::NodeHandle *nh_;
-    image_transport::ImageTransport image_transport_;
-    image_transport::CameraPublisher camera_pub_;
-    std::string video_url_;
-    std::string frame_id_;
-    ros::ServiceServer refresh_service_server_;
-    cv::VideoCapture cap_;
+  ros::NodeHandle *nh_;
+  image_transport::ImageTransport image_transport_;
+  image_transport::CameraPublisher camera_pub_;
+  std::string video_url_;
+  std::string frame_id_;
+  ros::ServiceServer refresh_service_server_;
+  cv::VideoCapture cap_;
 };
 
 #endif
