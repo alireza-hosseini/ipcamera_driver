@@ -29,8 +29,8 @@
 
 /* Author: Alireza Hosseini */
 
-#ifndef MRL_IPCAMERA
-#define MRL_IPCAMERA
+#ifndef IPCAMERA_DRIVER_HPP
+#define IPCAMERA_DRIVER_HPP
 
 #include <camera_info_manager/camera_info_manager.h>
 #include <cv_bridge/cv_bridge.h>
@@ -40,10 +40,10 @@
 #include <std_srvs/Empty.h>
 #include <opencv2/highgui/highgui.hpp>
 
-class MrlIpCamera
+class IpCameraDriver
 {
 public:
-  explicit MrlIpCamera();
+  explicit IpCameraDriver();
   bool publish();
   bool refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 

@@ -29,11 +29,11 @@
 
 /* Author: Alireza Hosseini */
 
-#include "mrl_ipcamera/mrl_ipcamera.hpp"
+#include "ipcamera_driver/ipcamera_driver.hpp"
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/video/video.hpp>
 
-MrlIpCamera::MrlIpCamera() : pnh_("~"), image_transport_(pnh_), camera_info_manager_(pnh_)
+IpCameraDriver::IpCameraDriver() : pnh_("~"), image_transport_(pnh_), camera_info_manager_(pnh_)
 {
   camera_pub_ = image_transport_.advertiseCamera("/camera/image", 10);
 
@@ -41,7 +41,7 @@ MrlIpCamera::MrlIpCamera() : pnh_("~"), image_transport_(pnh_), camera_info_mana
   pnh_.getParam("camera_info_url", camera_info_url_);
   pnh_.param<std::string>("frame_id", frame_id_, "cam_link");
 
-  refresh_service_server_ = pnh_.advertiseService("refresh", &MrlIpCamera::refreshSrvCallback, this);
+  refresh_service_server_ = pnh_.advertiseService("refresh", &IpCameraDriver::refreshSrvCallback, this);
 
   camera_info_manager_.setCameraName("camera");
 
@@ -65,7 +65,7 @@ MrlIpCamera::MrlIpCamera() : pnh_("~"), image_transport_(pnh_), camera_info_mana
   cap_.open(video_url_);
 }
 
-bool MrlIpCamera::publish()
+bool IpCameraDriver::publish()
 {
   cv::Mat frame;
   ros::Rate loop(33);
@@ -108,7 +108,7 @@ bool MrlIpCamera::publish()
   return true;
 }
 
-bool MrlIpCamera::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+bool IpCameraDriver::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
   ROS_INFO("refreshing");
   cap_.release();
@@ -122,7 +122,7 @@ bool MrlIpCamera::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Em
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "mrl_ip_camera");
-  MrlIpCamera ipCamera;
+  IpCameraDriver ipCamera;
   ipCamera.publish();
   return 0;
 }
