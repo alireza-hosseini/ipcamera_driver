@@ -13,6 +13,8 @@
 
   <license>GPL</license>
 
+  <url>http://www.ros.org/wiki/ipcamera_driver</url>
+
   <!-- Buildtool dependencies -->
   <buildtool_depend>catkin</buildtool_depend>
 
