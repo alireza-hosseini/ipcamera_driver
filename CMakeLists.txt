@@ -3,6 +3,7 @@ project(ipcamera_driver)
 
 
 find_package(catkin REQUIRED COMPONENTS
+  std_srvs
   camera_info_manager
   cv_bridge
   dynamic_reconfigure
@@ -15,6 +16,7 @@ find_package( OpenCV REQUIRED )
 include_directories(include ${catkin_INCLUDE_DIRS}  ${OpenCV_INCLUDE_DIRS} )
 catkin_package(
  CATKIN_DEPENDS
+  std_srvs
   camera_info_manager
   cv_bridge
   dynamic_reconfigure
