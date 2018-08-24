@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   roscpp
   sensor_msgs
+  std_srvs
 )
 
 find_package( OpenCV REQUIRED )
@@ -21,7 +22,8 @@ catkin_package(
   image_transport
   roscpp
   sensor_msgs
- DEPENDS
+  std_srvs
+DEPENDS
   OpenCV
 )
 
