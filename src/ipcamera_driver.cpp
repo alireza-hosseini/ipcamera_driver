@@ -78,7 +78,12 @@ bool IpCameraDriver::publish()
       {
         cap_ >> frame;
         if (frame.empty())
-          continue;
+        {
+            ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "There is no new frame!");
+            ros::spinOnce();
+            loop.sleep();
+            continue;
+        }
         cv_bridge::CvImage out_msg;
         out_msg.header.frame_id = frame_id_;
         out_msg.header.stamp = ros::Time::now();
@@ -110,7 +115,7 @@ bool IpCameraDriver::publish()
 
 bool IpCameraDriver::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
-  ROS_INFO("refreshing");
+  ROS_INFO("Received a request to refresh the video stream...");
   cap_.release();
   if (!cap_.open(video_url_))
   {
