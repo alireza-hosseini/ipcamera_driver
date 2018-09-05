@@ -40,6 +40,7 @@ IpCameraDriver::IpCameraDriver() : pnh_("~"), image_transport_(pnh_), camera_inf
   pnh_.param<std::string>("video_url", video_url_, "rtsp://admin:A123456789@192.168.1.64/live.sdp?:network-cache=300");
   pnh_.getParam("camera_info_url", camera_info_url_);
   pnh_.param<std::string>("frame_id", frame_id_, "cam_link");
+  pnh_.param<int>("frame_rate", frame_rate_, 30);
 
   refresh_service_server_ = pnh_.advertiseService("refresh", &IpCameraDriver::refreshSrvCallback, this);
 
@@ -68,7 +69,7 @@ IpCameraDriver::IpCameraDriver() : pnh_("~"), image_transport_(pnh_), camera_inf
 bool IpCameraDriver::publish()
 {
   cv::Mat frame;
-  ros::Rate loop(33);
+  ros::Rate loop(frame_rate_);
   while (ros::ok())
   {
     if (cap_.isOpened())

@@ -54,6 +54,7 @@ private:
   std::string video_url_;
   std::string camera_info_url_;
   std::string frame_id_;
+  int frame_rate_;
   ros::ServiceServer refresh_service_server_;
   cv::VideoCapture cap_;
   camera_info_manager::CameraInfoManager camera_info_manager_;
