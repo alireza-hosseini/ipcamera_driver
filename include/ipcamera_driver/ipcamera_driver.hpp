@@ -51,10 +51,14 @@ private:
   ros::NodeHandle pnh_;
   image_transport::ImageTransport image_transport_;
   image_transport::CameraPublisher camera_pub_;
+
   std::string video_url_;
   std::string camera_info_url_;
   std::string frame_id_;
   int frame_rate_;
+
+  const uint32_t MAX_EMPTY_FRAMES = 5;
+
   ros::ServiceServer refresh_service_server_;
   cv::VideoCapture cap_;
   camera_info_manager::CameraInfoManager camera_info_manager_;

@@ -70,9 +70,10 @@ bool IpCameraDriver::publish()
 {
   cv::Mat frame;
   ros::Rate loop(frame_rate_);
+  uint32_t no_frame_counts = 0;
   while (ros::ok())
   {
-    if (cap_.isOpened())
+    if (cap_.isOpened() && no_frame_counts < MAX_EMPTY_FRAMES)
     {
       ROS_INFO_ONCE("connection established");
       if (camera_pub_.getNumSubscribers() > 0)
@@ -80,10 +81,11 @@ bool IpCameraDriver::publish()
         cap_ >> frame;
         if (frame.empty())
         {
-            ROS_ERROR_STREAM_DELAYED_THROTTLE(5, "There is no new frame!");
-            ros::spinOnce();
-            loop.sleep();
-            continue;
+          no_frame_counts++;
+          ROS_ERROR_STREAM_THROTTLE(5, "There is no new frame!");
+          ros::spinOnce();
+          loop.sleep();
+          continue;
         }
         cv_bridge::CvImage out_msg;
         out_msg.header.frame_id = frame_id_;
@@ -104,8 +106,9 @@ bool IpCameraDriver::publish()
     else
     {
       cap_.release();
-      ROS_WARN_STREAM_DELAYED_THROTTLE(10, "Video stream is not available, retrying...");
+      ROS_WARN_STREAM_THROTTLE(10, "Video stream is not available, retrying...");
       cap_.open(video_url_);
+      no_frame_counts = 0;
     }
 
     ros::spinOnce();
