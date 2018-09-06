@@ -30,8 +30,9 @@
 /* Author: Alireza Hosseini */
 
 #include "ipcamera_driver/ipcamera_driver.hpp"
-#include <sensor_msgs/image_encodings.h>
 #include <opencv2/video/video.hpp>
+
+using namespace std::chrono_literals;
 
 IpCameraDriver::IpCameraDriver() : pnh_("~"), image_transport_(pnh_), camera_info_manager_(pnh_)
 {
@@ -66,33 +67,59 @@ IpCameraDriver::IpCameraDriver() : pnh_("~"), image_transport_(pnh_), camera_inf
   cap_.open(video_url_);
 }
 
+void IpCameraDriver::capture()
+{
+  while (ros::ok())
+  {
+    ROS_INFO_ONCE("Starting capture thread...");
+    if(keep_running)
+    {
+      mutex_.lock();
+      if(cap_.isOpened())
+      {
+        cv::Mat frame;
+        cap_ >> frame;
+        if (frame.empty())
+        {
+          mutex_.unlock();
+          continue;
+        }
+        frames_buffer_.push_back(frame);
+        mutex_.unlock();
+      }
+    }
+  }
+}
+
+
 bool IpCameraDriver::publish()
 {
   cv::Mat frame;
   ros::Rate loop(frame_rate_);
-  uint32_t no_frame_counts = 0;
+  last_time_frame_received_ = ros::Time::now();
+  std::thread capture_thread = std::thread(&IpCameraDriver::capture, this);
+  std::this_thread::sleep_for(2s); //Give sometime to thread
   while (ros::ok())
   {
-    if (cap_.isOpened() && no_frame_counts < MAX_EMPTY_FRAMES)
+    if (cap_.isOpened() && (ros::Time::now() - last_time_frame_received_) <= NO_FRAME_TIME_TOLERANCE)
     {
       ROS_INFO_ONCE("connection established");
-      if (camera_pub_.getNumSubscribers() > 0)
+      if(frames_buffer_.empty())
       {
-        cap_ >> frame;
-        if (frame.empty())
-        {
-          no_frame_counts++;
-          ROS_ERROR_STREAM_THROTTLE(5, "There is no new frame!");
+          ROS_WARN_STREAM("There is no new frame!");
           ros::spinOnce();
           loop.sleep();
           continue;
-        }
-        cv_bridge::CvImage out_msg;
-        out_msg.header.frame_id = frame_id_;
-        out_msg.header.stamp = ros::Time::now();
-        out_msg.encoding = sensor_msgs::image_encodings::BGR8;
-        out_msg.image = frame;
+      }
+      last_time_frame_received_ = ros::Time::now();
+      cv_bridge::CvImage out_msg;
+      out_msg.header.frame_id = frame_id_;
+      out_msg.header.stamp = ros::Time::now();
+      out_msg.encoding = sensor_msgs::image_encodings::BGR8;
+      out_msg.image = frames_buffer_.front();
 
+      if (camera_pub_.getNumSubscribers() > 0)
+      {
         sensor_msgs::CameraInfo camera_info;
         camera_info = camera_info_manager_.getCameraInfo();
         camera_info.header.frame_id = frame_id_;
@@ -102,29 +129,44 @@ bool IpCameraDriver::publish()
         out_msg.toImageMsg(rosimg);
         camera_pub_.publish(rosimg, camera_info, ros::Time::now());
       }
+      frames_buffer_.pop_front();
     }
     else
     {
-      cap_.release();
-      ROS_WARN_STREAM_THROTTLE(10, "Video stream is not available, retrying...");
-      cap_.open(video_url_);
-      no_frame_counts = 0;
+      ROS_ERROR("Camera connection is corrupted, reinitializing the connection...");
+      if(refresh())
+      {
+        last_time_frame_received_ = ros::Time::now();
+      }
     }
-
     ros::spinOnce();
     loop.sleep();
   }
+
+  capture_thread.join();
   return true;
+}
+
+bool IpCameraDriver::refresh()
+{
+    keep_running = false;
+    mutex_.lock();
+    cap_.release();
+    if (!cap_.open(video_url_))
+    {
+        ROS_ERROR_STREAM("Connecting to " << video_url_ << " failed.");
+        mutex_.unlock();
+        return false;
+    }
+    mutex_.unlock();
+    keep_running = true;
+    return true;
 }
 
 bool IpCameraDriver::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
 {
   ROS_INFO("Received a request to refresh the video stream...");
-  cap_.release();
-  if (!cap_.open(video_url_))
-  {
-    ROS_ERROR_STREAM("Connecting to " << video_url_ << " failed.");
-  }
+  refresh();
   return true;
 }
 

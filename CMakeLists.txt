@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ipcamera_driver)
 
+add_definitions(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
   camera_info_manager

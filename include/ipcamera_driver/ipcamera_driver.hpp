@@ -39,6 +39,10 @@
 #include <ros/service_server.h>
 #include <std_srvs/Empty.h>
 #include <opencv2/highgui/highgui.hpp>
+#include <mutex>
+#include <thread>
+#include <condition_variable>
+#include <atomic>
 
 class IpCameraDriver
 {
@@ -46,6 +50,10 @@ public:
   explicit IpCameraDriver();
   bool publish();
   bool refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+
+private:
+  bool refresh();
+  void capture();
 
 private:
   ros::NodeHandle pnh_;
@@ -57,11 +65,18 @@ private:
   std::string frame_id_;
   int frame_rate_;
 
-  const uint32_t MAX_EMPTY_FRAMES = 5;
+  const ros::Duration NO_FRAME_TIME_TOLERANCE{5};
 
   ros::ServiceServer refresh_service_server_;
   cv::VideoCapture cap_;
   camera_info_manager::CameraInfoManager camera_info_manager_;
+  std::list<cv::Mat> frames_buffer_;
+  std::mutex mutex_;
+  std::atomic<bool> keep_running{true};
+  ros::Time last_time_frame_received_;
 };
+
+
+
 
 #endif
