@@ -72,10 +72,10 @@ void IpCameraDriver::capture()
   while (ros::ok())
   {
     ROS_INFO_ONCE("Starting capture thread...");
-    if(keep_running)
+    if (keep_running)
     {
       mutex_.lock();
-      if(cap_.isOpened())
+      if (cap_.isOpened())
       {
         cv::Mat frame;
         cap_ >> frame;
@@ -91,25 +91,24 @@ void IpCameraDriver::capture()
   }
 }
 
-
 bool IpCameraDriver::publish()
 {
   cv::Mat frame;
   ros::Rate loop(frame_rate_);
   last_time_frame_received_ = ros::Time::now();
   std::thread capture_thread = std::thread(&IpCameraDriver::capture, this);
-  std::this_thread::sleep_for(2s); //Give sometime to thread
+  std::this_thread::sleep_for(2s);  // Give sometime to thread
   while (ros::ok())
   {
     if (cap_.isOpened() && (ros::Time::now() - last_time_frame_received_) <= NO_FRAME_TIME_TOLERANCE)
     {
       ROS_INFO_ONCE("connection established");
-      if(frames_buffer_.empty())
+      if (frames_buffer_.empty())
       {
-          ROS_WARN_STREAM("There is no new frame!");
-          ros::spinOnce();
-          loop.sleep();
-          continue;
+        ROS_WARN_STREAM("There is no new frame!");
+        ros::spinOnce();
+        loop.sleep();
+        continue;
       }
       last_time_frame_received_ = ros::Time::now();
       cv_bridge::CvImage out_msg;
@@ -134,7 +133,7 @@ bool IpCameraDriver::publish()
     else
     {
       ROS_ERROR("Camera connection is corrupted, reinitializing the connection...");
-      if(refresh())
+      if (refresh())
       {
         last_time_frame_received_ = ros::Time::now();
       }
@@ -149,18 +148,18 @@ bool IpCameraDriver::publish()
 
 bool IpCameraDriver::refresh()
 {
-    keep_running = false;
-    mutex_.lock();
-    cap_.release();
-    if (!cap_.open(video_url_))
-    {
-        ROS_ERROR_STREAM("Connecting to " << video_url_ << " failed.");
-        mutex_.unlock();
-        return false;
-    }
+  keep_running = false;
+  mutex_.lock();
+  cap_.release();
+  if (!cap_.open(video_url_))
+  {
+    ROS_ERROR_STREAM("Connecting to " << video_url_ << " failed.");
     mutex_.unlock();
-    keep_running = true;
-    return true;
+    return false;
+  }
+  mutex_.unlock();
+  keep_running = true;
+  return true;
 }
 
 bool IpCameraDriver::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
