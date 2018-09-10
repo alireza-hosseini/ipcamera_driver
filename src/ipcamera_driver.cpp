@@ -44,6 +44,7 @@ IpCameraDriver::IpCameraDriver() : pnh_("~"), image_transport_(pnh_), camera_inf
   pnh_.param<int>("frame_rate", frame_rate_, 30);
 
   refresh_service_server_ = pnh_.advertiseService("refresh", &IpCameraDriver::refreshSrvCallback, this);
+  disable_camera_service_server_ = pnh_.advertiseService("disable", &IpCameraDriver::disableCameraSrvCallback, this);
 
   camera_info_manager_.setCameraName("camera");
 
@@ -88,6 +89,10 @@ void IpCameraDriver::capture()
         mutex_.unlock();
       }
     }
+    else
+    {
+      std::this_thread::sleep_for(1s);
+    }
   }
 }
 
@@ -100,6 +105,13 @@ bool IpCameraDriver::publish()
   std::this_thread::sleep_for(2s);  // Give sometime to thread
   while (ros::ok())
   {
+    if (!keep_running)
+    {
+      ros::spinOnce();
+      loop.sleep();
+      continue;
+    }
+
     if (cap_.isOpened() && (ros::Time::now() - last_time_frame_received_) <= NO_FRAME_TIME_TOLERANCE)
     {
       ROS_INFO_ONCE("connection established");
@@ -166,6 +178,34 @@ bool IpCameraDriver::refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs:
 {
   ROS_INFO("Received a request to refresh the video stream...");
   refresh();
+  return true;
+}
+
+bool IpCameraDriver::disableCameraSrvCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)
+{
+  res.success = true;
+  if (req.data != keep_running)
+  {
+    res.success = false;
+    res.message = "Camera is already in the requested state";
+    ROS_INFO("service call to disable/enable the camera received but there is nothing to change...");
+    return true;
+  }
+  if (req.data)
+  {
+    ROS_INFO("Disabling the camera...");
+    keep_running = false;
+    mutex_.lock();
+    frames_buffer_.clear();
+    mutex_.unlock();
+    res.message = "Camera is successfully disabled.";
+  }
+  else
+  {
+    keep_running = true;
+    last_time_frame_received_ = ros::Time::now();
+    res.message = "Camera is successfully enabled.";
+  }
   return true;
 }
 

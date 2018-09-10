@@ -38,6 +38,7 @@
 #include <image_transport/image_transport.h>
 #include <ros/service_server.h>
 #include <std_srvs/Empty.h>
+#include <std_srvs/SetBool.h>
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -50,6 +51,7 @@ public:
   explicit IpCameraDriver();
   bool publish();
   bool refreshSrvCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+  bool disableCameraSrvCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res);
 
 private:
   bool refresh();
@@ -68,6 +70,7 @@ private:
   const ros::Duration NO_FRAME_TIME_TOLERANCE{ 5 };
 
   ros::ServiceServer refresh_service_server_;
+  ros::ServiceServer disable_camera_service_server_;
   cv::VideoCapture cap_;
   camera_info_manager::CameraInfoManager camera_info_manager_;
   std::list<cv::Mat> frames_buffer_;
