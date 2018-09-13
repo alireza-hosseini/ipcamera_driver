@@ -86,8 +86,8 @@ void IpCameraDriver::capture()
           continue;
         }
         frames_buffer_.push_back(frame);
-        mutex_.unlock();
       }
+      mutex_.unlock();
     }
     else
     {
@@ -163,6 +163,7 @@ bool IpCameraDriver::refresh()
   keep_running = false;
   mutex_.lock();
   cap_.release();
+  frames_buffer_.clear();
   if (!cap_.open(video_url_))
   {
     ROS_ERROR_STREAM("Connecting to " << video_url_ << " failed.");
