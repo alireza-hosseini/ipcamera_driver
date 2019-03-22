@@ -3,7 +3,7 @@ Simple node to publish regular IP camera video streams to a ros topic.
 
 ## Nodes
 
-### mrl_ipcamera
+### ipcamera_driver_node
 
 #### Publishers
 
