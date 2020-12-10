@@ -77,8 +77,11 @@ bool IpCameraDriver::publish()
       if (camera_pub_.getNumSubscribers() > 0)
       {
         cap_ >> frame;
-        if (frame.empty())
+        if (frame.empty()) {
+          ros::spinOnce();
+          loop.sleep();
           continue;
+        }
         cv_bridge::CvImage out_msg;
         out_msg.header.frame_id = frame_id_;
         out_msg.header.stamp = ros::Time::now();
